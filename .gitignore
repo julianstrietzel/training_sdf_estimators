@@ -1,0 +1,3 @@
+# ignore all subdirectories of data but not the files in data
+data/*/*
+.idea/*
