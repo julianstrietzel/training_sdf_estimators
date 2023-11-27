@@ -1,5 +1,4 @@
 import torch
-from torch import nn
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
@@ -31,7 +30,15 @@ def train():
     lr_scheduler_init(opt.lr_scheduler, optimizer, opt)
 
     # tensorboard
-    writer = SummaryWriter(log_dir="logs")
+    writer = SummaryWriter("./runs/" + opt.expr_dir.split("/")[-1])
+
+    def logging(context, global_step, loss):
+        writer.add_scalar(
+            opt.loss + "_loss/train/" + context, loss.item(), global_step,
+        )
+        writer.add_scalar(
+            "learning_rate/" + context, optimizer.param_groups[0]["lr"], global_step,
+        )
 
     # training loop
     for epoch in range(opt.epochs):
@@ -42,28 +49,17 @@ def train():
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            writer.add_scalar(
-                "Loss/train", loss.item(), epoch * len(dataloader) + batch_idx
-            )
+            logging("batch", epoch * len(dataloader) + batch_idx, loss)
         print("epoch: %d, loss: %f" % (epoch, loss.item()))
         # save model checkpoint
         if epoch % opt.save_epoch_freq == 0:
             torch.save(
-                model.state_dict(), f"{opt.checkpoints_dir}/model_{epoch}.pth",
+                model.state_dict(), f"{opt.expr_dir}/model_{epoch}.pth",
             )
+        logging("epoch", epoch, loss)
 
-    torch.save(model.state_dict(), f"{opt.checkpoints_dir}/model_final.pth")
+    torch.save(model.state_dict(), f"{opt.expr_dir}/model_final.pth")
     writer.close()
-
-
-def optimizer_factory(model, opt, optimizer_id):
-    optimizers = {
-        "adam": torch.optim.Adam,
-        "sgd": torch.optim.SGD,
-    }
-    if optimizer_id not in optimizers.keys():
-        raise ValueError("Optimizer [%s] not recognized." % optimizer_id)
-    return optimizers.get(optimizer_id)(model.parameters(), lr=opt.lr)
 
 
 if __name__ == "__main__":
