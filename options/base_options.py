@@ -17,20 +17,24 @@ class BaseOptions:
         # data params
         self.parser.add_argument(
             "--dataroot",
-            default="../data",
+            default="./data",
             required=False,
             help="path to data root should have subfolder for each dataset especially the one called in param dataset_name",
         )
         self.parser.add_argument(
             "--dataset_name",
             default="simple_shapes",
-            required=True,
             help="name of the dataset to use being the folder in data_root that contains the dataset",
+        )
+        self.parser.add_argument(
+            "--dataloader",
+            default="sdf_k_env_relative",
+            help="The kind of dataprovider for training",
         )
 
         # network params
         self.parser.add_argument(
-            "--batch_size", type=int, default=16, help="input batch size"
+            "--batch_size", type=int, default=512, help="input batch size"
         )
         self.parser.add_argument(
             "--model_name",
@@ -43,24 +47,11 @@ class BaseOptions:
         self.parser.add_argument(
             "--hlayer_sizes",
             type=list,
-            default=[64, 128, 64, 32, 16],
+            default=[64, 128, 128, 128, 128, 64, 32, 16],
             help="output_size of each hidden layer",
         )
 
-        self.parser.add_argument(
-            "--init_type",
-            type=str,
-            default="normal",
-            help="network initialization [normal|xavier|kaiming|orthogonal]",
-        )
-        self.parser.add_argument(
-            "--init_gain",
-            type=float,
-            default=0.02,
-            help="scaling factor for normal, xavier and orthogonal.",
-        )
         # general params
-        # TODO how is threading dataloader implemented?
         self.parser.add_argument(
             "--num_threads", default=3, type=int, help="# threads for loading data"
         )
@@ -82,33 +73,24 @@ class BaseOptions:
             default="./checkpoints",
             help="models are saved here",
         )
-
         self.parser.add_argument("--seed", type=int, help="if specified, uses seed")
-        # visualization params
-        self.parser.add_argument(
-            "--export_folder",
-            type=str,
-            default="",
-            help="exports intermediate collapses to this folder",
-        )
         # sdf_regression arguments
         self.parser.add_argument(
             "--point_encode",
             type=str,
             default="no_encode",
-            choices=["no_encode", "positional_encoding_3d"],
-            help="point encoding method from no_encdoe or positional_encoding_3d",
+            help="point encoding method from no_encode or positional_encoding_3d",
         )
         self.parser.add_argument(
             "--kdtree_num_samples",
             type=int,
-            default=3,
+            default=10,
             help="number of samples for kdtree closest point search for sdf approximation",
         )
         self.parser.add_argument(
             "--num_samples_per_mesh_per_epoch",
             type=int,
-            default=1024,
+            default=2 ** 16,
             help="number of samples per mesh per epoch to be constant for comparability "
             + "but for introducing something that epochs can refer to",
         )
@@ -127,7 +109,7 @@ class BaseOptions:
             if id >= 0:
                 self.opt.gpu_ids.append(id)
         # set gpu ids
-        if len(self.opt.gpu_ids) > 0:
+        if len(self.opt.gpu_ids) > 0 and torch.cuda.is_available():
             torch.cuda.set_device(self.opt.gpu_ids[0])
 
         args = vars(self.opt)
@@ -150,10 +132,6 @@ class BaseOptions:
             + self.opt.dataset_name
         )
 
-        self.opt.checkpoints_dir = os.path.join(
-            self.opt.checkpoints_dir, self.opt.dataset_name
-        )
-
         if self.is_train:
             print("------------ Options -------------")
             for k, v in sorted(args.items()):
@@ -162,10 +140,12 @@ class BaseOptions:
 
             # save to the disk
             expr_dir = os.path.join(self.opt.checkpoints_dir, self.opt.name)
+            self.opt.expr_dir = expr_dir
             if not os.path.exists(expr_dir):
                 os.makedirs(expr_dir)
             file_name = os.path.join(expr_dir, "opt.txt")
             with open(file_name, "wt") as opt_file:
+                opt_file.write(self.opt.name + "\n")
                 opt_file.write("------------ Options -------------\n")
                 for k, v in sorted(args.items()):
                     opt_file.write("%s: %s\n" % (str(k), str(v)))

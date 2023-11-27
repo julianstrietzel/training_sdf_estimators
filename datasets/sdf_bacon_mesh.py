@@ -23,16 +23,18 @@ class MeshSDF:
         fine_scale=1e-3,
         num_closest_points=3,
     ):
-        super().__init__()
+        # params
         self.num_samples = num_samples
+        self.num_closest_points = num_closest_points
         self.point_cloud_path = point_cloud_path
         self.coarse_scale = coarse_scale
         self.fine_scale = fine_scale
+        # data to be filled
         self.points = self.sdf = self.closest_points = None
         self.i = 0
+        # finish initial setup
         self.load_mesh(point_cloud_path)
         self.sample_surface()
-        self.num_closest_points = num_closest_points
 
     def load_mesh(self, point_cloud_path=None):
         if not point_cloud_path:
@@ -83,7 +85,7 @@ class MeshSDF:
         sdf = sdf[..., None]
         self.points = points
         self.sdf = sdf
-        self.closest_points = self.v[idx][:, 0]
+        self.closest_points = self.v[idx]
         # shape closest points: (num_samples, num_closest_points, 3)
         self.i = 0
 
