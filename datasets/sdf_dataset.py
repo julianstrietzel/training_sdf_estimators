@@ -3,16 +3,16 @@ import os
 
 from torch.utils.data import Dataset
 
-from datasets import defensive_programming_opt_input_checks
 from datasets.positional_encoding import point_encoder_fabric
 from datasets.sdf_bacon_mesh import MeshSDF
+from utils import defensive_programming_opt_input_checks_datasets
 
 
 class ABSSDFDataset(Dataset, metaclass=abc.ABCMeta):
     def __init__(self, opt):
-        defensive_programming_opt_input_checks(opt)
+        defensive_programming_opt_input_checks_datasets(opt)
         self.opt = opt
-        self.data_root = opt.dataroot
+        self.data_dir = os.path.join(opt.dataroot, opt.dataset_name)
 
     def __len__(self):
         """
@@ -41,12 +41,14 @@ class RelativeSDFKEnvDataset(ABSSDFDataset):
         self.meshes = [
             MeshSDF(
                 os.path.join(self.data_dir, path),
+                num_samples=opt.num_samples_per_mesh_per_epoch,
                 num_closest_points=opt.kdtree_num_samples,
             )
             for path in self.files
         ]
         self.positional_encoder = point_encoder_fabric(opt)
         self.size = len(self.files)
+        print("Dataset loaded.")
 
     def __getitem__(self, idx):
         """
@@ -71,4 +73,4 @@ class RelativeSDFKEnvDataset(ABSSDFDataset):
         relative = (
             nn - point
         )  # Is the following necessary? .reshape((1, 3)).repeat(nn.shape[0], axis=0)
-        return relative, sdf
+        return relative.flatten().astype("float32"), sdf.astype("float32")
