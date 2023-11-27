@@ -18,7 +18,8 @@ def train():
     )
     # init model
     model = model_factory(opt.model_name, opt)
-    model.train()
+    model = model.train()
+    model.init_weights()
 
     # init loss
     loss_fn = loss_factory(opt.loss)
