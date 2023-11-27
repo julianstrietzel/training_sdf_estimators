@@ -1,13 +1,11 @@
-from torch import nn
-
-import abs_regression_model
+from models import regression_models
 
 models = {
-    "simplest_regression_model": abs_regression_model.SimpleRegressionModel,
+    "simplest_regression_model": regression_models.SimpleRegressionModel,
 }
 
 
-def model_factory(model_name, opt) -> nn.Module:
+def model_factory(model_name, opt) -> regression_models.AbsRegressionModel:
     """
     Returns a model class given a model name.
     """

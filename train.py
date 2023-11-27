@@ -7,12 +7,13 @@ from tqdm import tqdm
 from datasets import dataset_factory
 from models import model_factory
 from options.train_options import TrainOptions
+from utils import loss_factory, optimizer_factory, lr_scheduler_init
 
 
 def train():
     opt = TrainOptions().parse()
     # init dataset
-    dataset = dataset_factory(opt.dataset_name, opt)
+    dataset = dataset_factory(opt.dataloader, opt)
     dataloader = DataLoader(
         dataset, batch_size=opt.batch_size, shuffle=True, num_workers=opt.num_threads
     )
@@ -21,10 +22,13 @@ def train():
     model.train()
 
     # init loss
-    loss_fn = nn.MSELoss()
+    loss_fn = loss_factory(opt.loss)
 
     # init optimizer
-    optimizer = optimizer_factory(model, opt, opt.optimizer)
+    optimizer = optimizer_factory(opt.optimizer, model, opt.lr)
+
+    # lr scheduler
+    lr_scheduler_init(opt.lr_scheduler, optimizer, opt)
 
     # tensorboard
     writer = SummaryWriter(log_dir="logs")
