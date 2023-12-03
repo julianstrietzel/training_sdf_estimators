@@ -43,19 +43,21 @@ def optimizer_factory(optimizer_id, model, lr) -> torch.optim.Optimizer:
     return optimizers.get(optimizer_id)(model.parameters(), lr=lr)
 
 
-def lr_scheduler_init(scheduler_id, optimizer, opt):
+def lr_scheduler_init(scheduler_id, optimizer, opt) -> torch.optim.lr_scheduler:
     if scheduler_id == "step":
-        torch.optim.lr_scheduler.StepLR(
+        return torch.optim.lr_scheduler.StepLR(
             optimizer, step_size=opt.lr_decay_iters, gamma=opt.lr_decay_gamma
         )
     elif scheduler_id == "plateau":
-        torch.optim.lr_scheduler.ReduceLROnPlateau(
+        return torch.optim.lr_scheduler.ReduceLROnPlateau(
             optimizer,
             factor=opt.lr_decay_gamma,
             patience=opt.lr_decay_patience,
             verbose=True,
         )
     elif scheduler_id == "exponential":
-        torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=opt.lr_decay_gamma)
+        return torch.optim.lr_scheduler.ExponentialLR(
+            optimizer, gamma=opt.lr_decay_gamma
+        )
     else:
         raise ValueError("Scheduler [%s] not recognized." % scheduler_id)

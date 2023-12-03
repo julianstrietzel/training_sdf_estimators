@@ -30,7 +30,7 @@ class MeshSDF:
         self.coarse_scale = coarse_scale
         self.fine_scale = fine_scale
         # data to be filled
-        self.points = self.sdf = self.closest_points = None
+        self.points = self.sdf = self.closest_points = self.closest_normals = None
         self.i = 0
         # finish initial setup
         self.load_mesh(point_cloud_path)
@@ -86,6 +86,7 @@ class MeshSDF:
         self.points = points
         self.sdf = sdf
         self.closest_points = self.v[idx]
+        self.closest_normals = self.n[idx]
         # shape closest points: (num_samples, num_closest_points, 3)
         self.i = 0
 
@@ -96,13 +97,14 @@ class MeshSDF:
         self.i += 1
         return point, sdf
 
-    def single_sample_plus_nearest_neighbors(self):
+    def single_sample_plus(self) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
         if self.i >= self.num_samples:
             self.sample_surface()
-        point, sdf, nn = (
+        point, sdf, nn, normals = (
             self.points[self.i],
             self.sdf[self.i],
             self.closest_points[self.i, ...],
+            self.closest_normals[self.i, ...],
         )
         self.i += 1
-        return point, sdf, nn
+        return point, sdf, nn, normals

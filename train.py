@@ -28,7 +28,7 @@ def train():
     optimizer = optimizer_factory(opt.optimizer, model, opt.lr)
 
     # lr scheduler
-    lr_scheduler_init(opt.lr_scheduler, optimizer, opt)
+    scheduler = lr_scheduler_init(opt.lr_scheduler, optimizer, opt)
 
     # tensorboard
     writer = SummaryWriter("./runs/" + opt.expr_dir.split("/")[-1])
@@ -51,7 +51,12 @@ def train():
             loss.backward()
             optimizer.step()
             logging("batch", epoch * len(dataloader) + batch_idx, loss)
-        print("epoch: %d, loss: %f" % (epoch, loss.item()))
+        if epoch > 25:
+            scheduler.step()
+        print(
+            "epoch: %d, loss: %f, lr: %f"
+            % (epoch, loss.item(), optimizer.param_groups[0]["lr"])
+        )
         # save model checkpoint
         if epoch % opt.save_epoch_freq == 0:
             torch.save(

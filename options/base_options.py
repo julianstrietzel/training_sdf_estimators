@@ -12,6 +12,7 @@ class BaseOptions:
         )
         self.initialized = False
         self.is_train = None
+        self.is_inference = False
 
     def initialize(self):
         # data params
@@ -46,8 +47,9 @@ class BaseOptions:
         # sizes of hidden layers in the network
         self.parser.add_argument(
             "--hlayer_sizes",
-            type=list,
-            default=[64, 128, 128, 128, 128, 64, 32, 16],
+            nargs="+",
+            type=int,
+            default=[64, 128, 64, 32, 16],
             help="output_size of each hidden layer",
         )
 
