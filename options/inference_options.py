@@ -1,7 +1,7 @@
 from .base_options import BaseOptions
 
 
-class TestOptions(BaseOptions):
+class InferenceOptions(BaseOptions):
     def initialize(self):
         BaseOptions.initialize(self)
         self.parser.add_argument(
