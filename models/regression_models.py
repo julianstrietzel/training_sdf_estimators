@@ -1,9 +1,9 @@
 import abc
 import os
+from typing import Optional
 
 import torch
 import torch.nn as nn
-from torch import nn as nn
 
 
 class AbsRegressionModel(nn.Module, metaclass=abc.ABCMeta):
@@ -13,6 +13,20 @@ class AbsRegressionModel(nn.Module, metaclass=abc.ABCMeta):
 
     def init_weights(self):
         print("No weight initialization implemented for this model.")
+
+    def load_weights(self, path: Optional[str]):
+        if path is not None:
+            self.load_state_dict(torch.load(path))
+        else:
+            self.load_state_dict(
+                torch.load(
+                    os.join(
+                        self.opt.load_dir,
+                        self.opt.model_id,
+                        f"model_{self.opt.which_epoch}.pth",
+                    )
+                )
+            )
 
     @abc.abstractmethod
     def forward(self, x):
@@ -33,17 +47,6 @@ class SimpleRegressionModel(AbsRegressionModel):
         self.relu = nn.ReLU()
 
     def init_weights(self):
-        if self.opt.is_inference:
-            self.load_state_dict(
-                torch.load(
-                    os.join(
-                        self.opt.load_dir,
-                        self.opt.model_id,
-                        f"model_{self.opt.which_epoch}.pth",
-                    )
-                )
-            )
-            return
         init_weights(
             self.fc_layers + [self.fc_out],
             init_type=self.opt.init_type,
