@@ -5,6 +5,7 @@ from datasets import sdf_dataset
 # Add new datasets here
 datasets = {
     "sdf_k_env_relative": sdf_dataset.RelativeSDFKEnvDataset,
+    "sdf_k_env_convo": sdf_dataset.RelativeSDFKEnvConvoDataset,
 }
 
 

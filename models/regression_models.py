@@ -44,6 +44,39 @@ class SimpleRegressionModel(AbsRegressionModel):
         return x
 
 
+class ConvoRegressionModel(AbsRegressionModel):
+    def __init__(self, opt):
+        super(ConvoRegressionModel, self).__init__(opt)
+        # input_size will be (batch_size
+        self.cv1 = nn.Conv1d(6, 12, 1)
+        self.act1 = nn.LeakyReLU()
+        self.cv2 = nn.Conv1d(12, 16, 1)
+        self.act2 = nn.LeakyReLU()
+        self.cv3 = nn.Conv1d(16, 8, 3)
+        self.act3 = nn.LeakyReLU()
+        self.flatten = nn.Flatten()
+        self.fc1 = nn.Linear(16, 8)
+        self.act4 = nn.ReLU()
+        self.fc2 = nn.Linear(8, 1)
+        self.act5 = nn.ReLU()
+
+    def init_weights(self):
+        init_weights(
+            [self.cv1, self.cv2, self.cv3, self.fc1, self.fc2,],
+            init_type=self.opt.init_type,
+            gain=self.opt.init_gain,
+        )
+
+    def forward(self, x):
+        x = self.act1(self.cv1(x))
+        x = self.act2(self.cv2(x))
+        x = self.act3(self.cv3(x))
+        x = self.flatten(x)
+        x = self.act4(self.fc1(x))
+        x = self.act5(self.fc2(x))
+        return x
+
+
 def init_weights(layers, init_type="normal", gain=0.02):
     """
     Initialize network weights.
