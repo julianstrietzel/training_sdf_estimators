@@ -1,6 +1,9 @@
 import abc
+import os
 
+import torch
 import torch.nn as nn
+from torch import nn as nn
 
 
 class AbsRegressionModel(nn.Module, metaclass=abc.ABCMeta):
@@ -8,9 +11,8 @@ class AbsRegressionModel(nn.Module, metaclass=abc.ABCMeta):
         super(AbsRegressionModel, self).__init__()
         self.opt = opt
 
-    @abc.abstractmethod
     def init_weights(self):
-        pass
+        print("No weight initialization implemented for this model.")
 
     @abc.abstractmethod
     def forward(self, x):
@@ -31,6 +33,17 @@ class SimpleRegressionModel(AbsRegressionModel):
         self.relu = nn.ReLU()
 
     def init_weights(self):
+        if self.opt.is_inference:
+            self.load_state_dict(
+                torch.load(
+                    os.join(
+                        self.opt.load_dir,
+                        self.opt.model_id,
+                        f"model_{self.opt.which_epoch}.pth",
+                    )
+                )
+            )
+            return
         init_weights(
             self.fc_layers + [self.fc_out],
             init_type=self.opt.init_type,
