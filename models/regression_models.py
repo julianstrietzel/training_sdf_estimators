@@ -14,16 +14,16 @@ class AbsRegressionModel(nn.Module, metaclass=abc.ABCMeta):
     def init_weights(self):
         print("No weight initialization implemented for this model.")
 
-    def load_weights(self, path: Optional[str]):
+    def load_weights(self, path: Optional[str] = None):
         if path is not None:
             self.load_state_dict(torch.load(path))
         else:
             self.load_state_dict(
                 torch.load(
-                    os.join(
+                    os.path.join(
                         os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                         self.opt.expr_dir,
-                        f"model_{self.opt.which_epoch}.pth",
+                        f"model_{self.opt.which_epoch if hasattr(self.opt, 'which_epoch') else 'final'}.pth",
                     )
                 )
             )
