@@ -14,9 +14,9 @@ class InferenceOptions(BaseOptions):
 
     def initialize(self):
         for line in open(self.opt_path, "r"):
-            if line.startswith("----"):
-                continue
             key, value = line.strip().split(":")
+            if len(value) < 2:
+                continue
             setattr(self.opt, key.strip(), value.strip())
         self.initialized = True
 

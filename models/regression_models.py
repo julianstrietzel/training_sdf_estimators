@@ -21,8 +21,8 @@ class AbsRegressionModel(nn.Module, metaclass=abc.ABCMeta):
             self.load_state_dict(
                 torch.load(
                     os.join(
-                        self.opt.load_dir,
-                        self.opt.model_id,
+                        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                        self.opt.expr_dir,
                         f"model_{self.opt.which_epoch}.pth",
                     )
                 )
@@ -78,7 +78,13 @@ class ConvoRegressionModel(AbsRegressionModel):
 
     def init_weights(self):
         init_weights(
-            [self.cv1, self.cv2, self.cv3, self.fc1, self.fc2,],
+            [
+                self.cv1,
+                self.cv2,
+                self.cv3,
+                self.fc1,
+                self.fc2,
+            ],
             init_type=self.opt.init_type,
             gain=self.opt.init_gain,
         )
