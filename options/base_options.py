@@ -6,6 +6,8 @@ import torch
 
 
 class BaseOptions:
+    EXTRACTOR_CLASS = "training_sdf_estimators"
+
     def __init__(self):
         self.parser = argparse.ArgumentParser(
             formatter_class=argparse.ArgumentDefaultsHelpFormatter
@@ -92,7 +94,7 @@ class BaseOptions:
         self.parser.add_argument(
             "--num_samples_per_mesh_per_epoch",
             type=int,
-            default=2 ** 16,
+            default=2**16,
             help="number of samples per mesh per epoch to be constant for comparability "
             + "but for introducing something that epochs can refer to",
         )
