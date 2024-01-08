@@ -1,4 +1,4 @@
-from models import regression_models
+from . import regression_models
 
 models = {
     "simplest_regression_model": regression_models.SimpleRegressionModel,

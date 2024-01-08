@@ -45,8 +45,8 @@ class MeshSDF:
             self.n = point_cloud[:, 3:]
         elif "obj" in point_cloud_path:
             point_cloud = trimesh.load(point_cloud_path)
-            self.v = point_cloud.vertices
-            self.n = point_cloud.vertex_normals
+            self.v = np.array(point_cloud.vertices)
+            self.n = np.array(point_cloud.vertex_normals)
         else:
             raise NotImplementedError("Only xyz and obj files are supported")
 

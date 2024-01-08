@@ -15,7 +15,7 @@ class InferenceOptions(BaseOptions):
     def initialize(self):
         for line in open(self.opt_path, "r"):
             x = line.strip().split(":")
-            if len(x) < 2:
+            if len(x) != 2:
                 continue
             setattr(self.opt, x[0].strip(), convert(x[1].strip()))
         self.initialized = True
