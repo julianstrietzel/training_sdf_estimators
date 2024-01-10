@@ -18,11 +18,20 @@ class AbsRegressionModel(nn.Module, metaclass=abc.ABCMeta):
         if path is not None:
             self.load_state_dict(torch.load(path))
         else:
+            # check if expr_dir is absolute path
+            expr_dir = (
+                self.opt.expr_dir
+                if self.opt.expr_dir.startswith(".")
+                else os.path.join(
+                    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                    self.opt.expr_dir,
+                )
+            )
+
             self.load_state_dict(
                 torch.load(
                     os.path.join(
-                        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                        self.opt.expr_dir,
+                        expr_dir,
                         f"model_{self.opt.which_epoch if hasattr(self.opt, 'which_epoch') else 'final'}.pth",
                     )
                 )
