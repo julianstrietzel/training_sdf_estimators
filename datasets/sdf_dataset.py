@@ -58,22 +58,9 @@ class RelativeSDFKEnvDataset(ABSSDFDataset):
         :param idx:
         :return: relative: relative coordinates of the nearest neighbors to the point, sdf: the SDF value of the point
         """
-        idx = idx % self.size
-        mesh = self.meshes[idx]
+        mesh = self.meshes[idx % self.size]
         point, sdf, nn, _ = mesh.single_sample_plus()
-        # positional_encoded_point = self.positional_encoder.forward(
-        #    torch.from_numpy(np.expand_dims(point, 0))
-        # )[0, ..., np.newaxis]
-        # if positional_encoded_point.shape != (3, 1):
-        #    raise ValueError(
-        #        "positional_encoded_point.shape != (3, 1)\nThis is for debugging at the first time only: Remove afterwards!"
-        #    )
-
-        # subtract point from nearest neighbors to get relative coordinates so that we do not need any point_encoding
-        # nn is shape (num_closest_points, 3) and point is shape (3)
-        relative = (
-            nn - point
-        )  # Is the following necessary? .reshape((1, 3)).repeat(nn.shape[0], axis=0)
+        relative = nn - point
         return relative.flatten().astype("float32"), sdf.astype("float32")
 
 

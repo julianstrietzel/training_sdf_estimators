@@ -49,7 +49,10 @@ class MeshSDF:
             self.n = np.array(point_cloud.vertex_normals)
         else:
             raise NotImplementedError("Only xyz and obj files are supported")
-
+        if self.v.shape[0] != self.n.shape[0]:
+            raise ValueError(
+                f"Point cloud vectors and normals have different number of points: {self.v.shape[0]} and {self.n.shape[0]}"
+            )
         n_norm = np.linalg.norm(self.n, axis=-1)[:, None]
         n_norm[n_norm == 0] = 1.0
         self.n = self.n / n_norm
@@ -65,6 +68,7 @@ class MeshSDF:
         return coords
 
     def sample_surface(self):
+        # sample some points of the surface and add noise to them
         idx = np.random.randint(0, self.v.shape[0], self.num_samples)
         points = self.v[idx]
         points[::2] += np.random.laplace(
