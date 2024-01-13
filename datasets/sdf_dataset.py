@@ -2,6 +2,7 @@ import abc
 import os
 
 import numpy as np
+import torch
 from torch.utils.data import Dataset
 
 from datasets.positional_encoding import point_encoder_fabric
@@ -59,9 +60,12 @@ class RelativeSDFKEnvDataset(ABSSDFDataset):
         :return: relative: relative coordinates of the nearest neighbors to the point, sdf: the SDF value of the point
         """
         mesh = self.meshes[idx % self.size]
-        point, sdf, nn, _ = mesh.single_sample_plus()
+        point, sdf, nn, normals = mesh.single_sample_plus()
         relative = nn - point
-        return relative.flatten().astype("float32"), sdf.astype("float32")
+        concatenated = np.concatenate((relative, normals), axis=1)
+        relative, sdf = concatenated.flatten().astype("float32"), sdf.astype("float32")
+        # move to gpu cuda
+        return torch.from_numpy(relative).to("cuda"), torch.from_numpy(sdf).to("cuda")
 
 
 class RelativeSDFKEnvConvoDataset(ABSSDFDataset):
@@ -99,6 +103,7 @@ class RelativeSDFKEnvConvoDataset(ABSSDFDataset):
         mesh = self.meshes[idx]
         point, sdf, nn, normals = mesh.single_sample_plus()
         relative = nn - point
+        normalized_normals = normals / np.linalg.norm(normals, axis=1)[:, None]
         sdf = sdf.astype("float32")
         concat = np.concatenate((relative, normals), axis=1).T.astype("float32")
         return concat, sdf

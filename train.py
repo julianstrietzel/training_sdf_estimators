@@ -1,4 +1,5 @@
 import torch
+from torch import nn
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
@@ -19,6 +20,7 @@ def train():
     # init model
     model = model_factory(opt.model_name, opt)
     model = model.train()
+    model = model.to("cuda")
     model.init_weights()
 
     # init loss
@@ -63,6 +65,15 @@ def train():
                 model.state_dict(), f"{opt.expr_dir}/model_{epoch}.pth",
             )
         logging("epoch", epoch, loss)
+        # test model
+        model = model.eval()
+        batch = dataloader.__iter__().__next__()
+        model_input, target = batch
+        model_output = model(model_input)
+        loss = nn.L1Loss()(model_output, target)
+        logging("test_epoch_mae", epoch, loss)
+        print("test_epoch_mae: %f" % loss.item())
+        model = model.train()
 
     torch.save(model.state_dict(), f"{opt.expr_dir}/model_final.pth")
     writer.close()

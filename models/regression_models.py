@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 
 
-class AbsRegressionModel(nn.Module, metaclass=abc.ABCMeta):
+class AbsRegressionModel(nn.Module):
     def __init__(self, opt):
         super(AbsRegressionModel, self).__init__()
         self.opt = opt
@@ -37,23 +37,21 @@ class AbsRegressionModel(nn.Module, metaclass=abc.ABCMeta):
                 )
             )
 
-    @abc.abstractmethod
-    def forward(self, x):
-        pass
-
 
 class SimpleRegressionModel(AbsRegressionModel):
     def __init__(self, opt):
         super(SimpleRegressionModel, self).__init__(opt)
         hidden_sizes = opt.hlayer_sizes
-        input_size = opt.kdtree_num_samples * 3
+        input_size = opt.kdtree_num_samples * 6
         self.fc_layers = [nn.Linear(input_size, hidden_sizes[0])] + [
             nn.Linear(hidden_sizes[i], hidden_sizes[i + 1])
             for i in range(len(hidden_sizes) - 1)
         ]
-
         self.fc_out = nn.Linear(hidden_sizes[-1], 1)
         self.relu = nn.ReLU()
+
+        self.fc_layers = [layer.to("cuda") for layer in self.fc_layers]
+        self.fc_out = self.fc_out.to("cuda")
 
     def init_weights(self):
         init_weights(
@@ -87,13 +85,7 @@ class ConvoRegressionModel(AbsRegressionModel):
 
     def init_weights(self):
         init_weights(
-            [
-                self.cv1,
-                self.cv2,
-                self.cv3,
-                self.fc1,
-                self.fc2,
-            ],
+            [self.cv1, self.cv2, self.cv3, self.fc1, self.fc2,],
             init_type=self.opt.init_type,
             gain=self.opt.init_gain,
         )

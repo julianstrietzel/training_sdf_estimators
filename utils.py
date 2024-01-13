@@ -27,10 +27,32 @@ def loss_factory(loss_name):
         "mse": nn.MSELoss,
         "mae": nn.L1Loss,
         "l1": nn.L1Loss,
+        "mse+penalty": CustomMSELoss,
     }
     if loss_name not in losses.keys():
         raise ValueError("Loss [%s] not recognized." % loss_name)
     return losses.get(loss_name)()
+
+
+class CustomMSELoss(nn.Module):
+    def __init__(self, alpha=1.0):
+        super(CustomMSELoss, self).__init__()
+        self.mse_loss = nn.MSELoss()
+        self.alpha = alpha
+
+    def forward(self, output, target):
+        # Calculate the MSE loss
+        mse_loss = self.mse_loss(output, target)
+
+        # Calculate the penalty for wrong sign
+        sign_penalty = self.alpha * torch.mean(
+            (output * target < 0).float() * torch.sqrt(torch.abs(output * target))
+        )
+
+        # Combine the MSE loss and the sign penalty
+        total_loss = mse_loss + sign_penalty
+
+        return total_loss
 
 
 def optimizer_factory(optimizer_id, model, lr) -> torch.optim.Optimizer:
